@@ -1,0 +1,42 @@
+{
+  "patient": {
+    "patient_id": "PT-DEMO-0001",
+    "sex": "female",
+    "age_years": 53,
+    "notes": "Family history of type 2 diabetes; on no lipid-lowering therapy."
+  },
+  "panels": [
+    {
+      "panel_id": "PNL-2024-0310",
+      "collected_date": "2024-03-10",
+      "reported_date": "2024-03-11",
+      "source_lab": { "name": "Acme Diagnostics", "country": "US", "unit_system": "conventional" },
+      "context": "Routine metabolic screen",
+      "results": [
+        { "name": "HbA1c", "loinc": "4548-4", "value": 5.9, "unit": "%", "ref_low": 4.0, "ref_high": 5.6, "flag": "high", "ref_note": "Non-diabetic < 5.7" },
+        { "name": "Fasting Glucose", "loinc": "1558-6", "value": 108, "unit": "mg/dL", "ref_low": 70, "ref_high": 99, "flag": "high" },
+        { "name": "LDL Cholesterol", "loinc": "13457-7", "value": 142, "unit": "mg/dL", "ref_low": null, "ref_high": 100, "flag": "high", "derived": true, "ref_note": "Calculated; optimal < 100" },
+        { "name": "HDL Cholesterol", "loinc": "2085-9", "value": 48, "unit": "mg/dL", "ref_low": 40, "ref_high": 60, "flag": "normal" },
+        { "name": "Creatinine", "loinc": "2160-0", "value": 0.9, "unit": "mg/dL", "ref_low": 0.6, "ref_high": 1.1, "flag": "normal" },
+        { "name": "eGFR (CKD-EPI)", "loinc": "62238-1", "value": ">90", "unit": "mL/min/1.73m2", "ref_low": 90, "ref_high": null, "flag": "normal", "derived": true, "ref_note": ">=90 normal" },
+        { "name": "HCV Antibody", "loinc": "16128-1", "value": "negative", "unit": null, "ref_low": null, "ref_high": null, "flag": "normal" }
+      ]
+    },
+    {
+      "panel_id": "PNL-2025-0922",
+      "collected_date": "2025-09-22",
+      "reported_date": "2025-09-23",
+      "source_lab": { "name": "Acme Diagnostics", "country": "US", "unit_system": "conventional" },
+      "context": "Follow-up metabolic screen",
+      "results": [
+        { "name": "HbA1c", "loinc": "4548-4", "value": 6.4, "unit": "%", "ref_low": 4.0, "ref_high": 5.6, "flag": "high", "ref_note": "Non-diabetic < 5.7" },
+        { "name": "Fasting Glucose", "loinc": "1558-6", "value": 121, "unit": "mg/dL", "ref_low": 70, "ref_high": 99, "flag": "high" },
+        { "name": "LDL Cholesterol", "loinc": "13457-7", "value": 155, "unit": "mg/dL", "ref_low": null, "ref_high": 100, "flag": "high", "derived": true, "ref_note": "Calculated; optimal < 100" },
+        { "name": "HDL Cholesterol", "loinc": "2085-9", "value": 46, "unit": "mg/dL", "ref_low": 40, "ref_high": 60, "flag": "normal" },
+        { "name": "Creatinine", "loinc": "2160-0", "value": 14.2, "unit": "mg/dL", "ref_low": 0.6, "ref_high": 1.1, "flag": "high", "ref_note": "Isolated extreme vs prior 0.9 — query sample integrity" },
+        { "name": "eGFR (CKD-EPI)", "loinc": "62238-1", "value": ">90", "unit": "mL/min/1.73m2", "ref_low": 90, "ref_high": null, "flag": "normal", "derived": true, "ref_note": ">=90 normal" },
+        { "name": "HCV Antibody", "loinc": "16128-1", "value": "negative", "unit": null, "ref_low": null, "ref_high": null, "flag": "normal" }
+      ]
+    }
+  ]
+}

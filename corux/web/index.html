@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CORUX — Physician Report</title>
+  <style>
+    :root {
+      --bg:#f4f1ea; --paper:#fbfaf6; --ink:#2b2825; --muted:#8a8175; --faint:#b6ad9e;
+      --line:#e6e0d3; --line2:#d8d0bf; --accent:#b5572f; --accent-soft:#f0e7dd;
+      --serif: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+      --good:#3f7d56; --watch:#a07d2a; --elevated:#b5572f; --critical:#b3402f;
+      --dangerous:#9b2d22; --low:#3f6d8f;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink);
+      font-family:-apple-system,system-ui,'Segoe UI',sans-serif; font-size:14px; line-height:1.5; }
+    a { color:var(--accent); }
+    .wrap { max-width:1180px; margin:0 auto; padding:0 22px 60px; }
+    header { padding:26px 0 14px; }
+    header .kick { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--faint); }
+    header h1 { font-family:var(--serif); font-weight:700; font-size:30px; margin:6px 0 2px; letter-spacing:-.3px; }
+    header .sub { color:var(--muted); font-size:13px; }
+    .toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      padding:12px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-top:8px; }
+    .toolbar .spacer { flex:1; }
+    button, select { font-family:inherit; background:var(--paper); color:var(--ink); border:1px solid var(--line2);
+      border-radius:7px; padding:7px 12px; font-size:13px; cursor:pointer; }
+    button:hover, select:hover { border-color:var(--accent); }
+    button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+    button.primary:disabled { opacity:.5; cursor:default; }
+    label.chk { font-size:13px; color:var(--muted); display:inline-flex; align-items:center; gap:5px; cursor:pointer; }
+    details.input { margin:14px 0; }
+    details.input > summary { cursor:pointer; font-size:12px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); padding:6px 0; }
+    textarea { width:100%; height:230px; border:1px solid var(--line2); border-radius:8px; padding:12px;
+      background:var(--paper); color:var(--ink); font-family:ui-monospace,Menlo,monospace; font-size:12.5px; resize:vertical; }
+    .placeholder { color:var(--muted); text-align:center; padding:50px 0; font-size:14px; }
+    .err-box { background:#fbeae6; border:1px solid var(--critical); border-radius:8px; padding:12px 14px; color:#8a2f24; }
+
+    /* small-caps section label */
+    .lab { font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); }
+
+    /* Report */
+    .report { display:grid; grid-template-columns: 1fr 320px; gap:22px; margin-top:18px; }
+    @media (max-width:880px){ .report { grid-template-columns:1fr; } }
+    .paper { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:22px 24px; }
+    .rhead { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:16px; }
+    .rhead h2 { font-family:var(--serif); font-size:21px; margin:0 0 6px; }
+    .rhead .meta { font-size:12px; color:var(--muted); }
+    .rhead .meta b { color:var(--ink); font-weight:600; }
+    .tagpill { font-size:10.5px; letter-spacing:.6px; text-transform:uppercase; color:var(--accent);
+      background:var(--accent-soft); border-radius:20px; padding:4px 10px; white-space:nowrap; }
+    .headline { font-family:var(--serif); font-size:18px; line-height:1.4; margin:2px 0 12px; }
+    .narrative p { margin:0 0 11px; }
+    .callout { border-left:3px solid var(--accent); background:#f6efe7; padding:11px 14px; border-radius:0 8px 8px 0; margin:12px 0; font-size:13.5px; }
+    .callout.italic { font-style:italic; color:#5e574d; }
+
+    h3.section { font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin:22px 0 8px; }
+
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { text-align:left; font-size:10.5px; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); font-weight:600; padding:7px 8px; border-bottom:1px solid var(--line2); }
+    td { padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+    tr:last-child td { border-bottom:0; }
+    td.name { font-weight:600; }
+    td.mono { font-variant-numeric:tabular-nums; }
+    .deriv { font-size:10px; color:var(--faint); text-transform:uppercase; letter-spacing:.5px; margin-left:5px; }
+
+    .badge { display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:5px; text-transform:capitalize; white-space:nowrap; }
+    .st-normal { color:var(--good); background:#e7f0e9; }
+    .st-watch { color:var(--watch); background:#f5eed8; }
+    .st-elevated{ color:var(--elevated); background:#f6e6db; }
+    .st-low { color:var(--low); background:#e3edf3; }
+    .st-critical{ color:#fff; background:var(--critical); }
+    .st-dangerous{ color:#fff; background:var(--dangerous); }
+
+    .trend .ch { font-variant-numeric:tabular-nums; font-weight:600; margin-right:6px; }
+    .t-up { color:var(--elevated); } .t-down { color:var(--good); } .t-flat { color:var(--muted); }
+    .tb-elevated{ color:var(--elevated); } .tb-good{ color:var(--good); } .tb-stable{ color:var(--muted); }
+    .peak { font-size:11px; color:var(--dangerous); margin-top:3px; }
+    .muted { color:var(--muted); }
+
+    /* sidebar */
+    .side .card { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:16px; }
+    .side h3 { font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin:0 0 10px; }
+    .dp { padding:8px 0; border-bottom:1px solid var(--line); }
+    .dp:last-child { border-bottom:0; }
+    .dp .topic { font-weight:600; } .dp .detail { color:#5e574d; font-size:12.7px; margin-top:2px; }
+    .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+    .pri-urgent .dot{ background:var(--dangerous);} .pri-soon .dot{ background:var(--accent);} .pri-routine .dot{ background:var(--faint);}
+    .nextp b { font-weight:600; }
+    .chips { margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; }
+    .chip { font-size:11.5px; background:var(--accent-soft); color:var(--accent); border-radius:6px; padding:3px 8px; }
+    .flagline { font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--line); }
+    .flagline:last-child{ border-bottom:0; }
+    .flagline.err b { color:var(--dangerous);} .flagline.ver b { color:var(--watch);}
+
+    .pattern { border:1px solid var(--line2); border-radius:10px; padding:14px 16px; margin-top:14px; background:#faf6ee; }
+    .disclaimer { color:var(--muted); font-size:11.5px; margin-top:14px; font-style:italic; }
+
+    /* side-by-side */
+    .sbs { display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line2); border-radius:10px; overflow:hidden; margin-top:10px; }
+    @media (max-width:700px){ .sbs { grid-template-columns:1fr; } }
+    .sbs .col { padding:14px 16px; }
+    .sbs .col.trad { background:#f1ece1; border-right:1px solid var(--line2); }
+    .sbs h4 { margin:0 0 4px; font-size:13px; } .sbs .sublab { font-size:11px; color:var(--muted); margin-bottom:10px; }
+    .sbs .row { display:flex; justify-content:space-between; font-size:12.5px; padding:4px 0; border-bottom:1px solid var(--line); gap:8px; }
+    .sbs .row:last-child { border-bottom:0; }
+    .flag-H { color:var(--elevated); font-weight:700; } .flag-L { color:var(--low); font-weight:700; } .flag-N { color:var(--faint); }
+    .sbs .extra { margin-top:10px; font-size:12px; color:#5e574d; }
+
+    /* trace */
+    details.trace-wrap { margin-top:16px; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:6px 16px; }
+    details.trace-wrap > summary { cursor:pointer; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:8px 0; }
+    .trace-head { display:flex; align-items:center; gap:10px; padding-bottom:6px; }
+    .trace-head .tot { margin-left:auto; color:var(--muted); font-size:11px; }
+    .trace { font-family:ui-monospace,Menlo,monospace; font-size:12px;
+      max-height:240px; overflow-y:auto; padding-right:6px;
+      border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .trow { display:grid; grid-template-columns:64px 16px 1fr auto; gap:8px; align-items:center; padding:4px 0; border-bottom:1px solid var(--line); }
+    .trow:last-child { border-bottom:0; }
+    .trow .t { color:var(--faint); font-size:11px; } .trow .sub { color:var(--muted); font-size:11px; } .trow .dur { color:var(--accent); font-size:11px; }
+    .ic { width:13px; height:13px; border-radius:50%; display:inline-block; }
+    .ic.running { border:2px solid var(--line2); border-top-color:var(--accent); animation:spin .9s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .ic.done { background:var(--good);} .ic.skip{ background:var(--faint);} .ic.err{ background:var(--dangerous);} .ic.llm{ background:var(--accent);} .ic.tool{ background:#8a6fd6;}
+    .spin-note { display:flex; align-items:center; gap:10px; color:var(--muted); padding:14px 0; }
+    .mini-btn { font-size:11px; padding:3px 8px; }
+    pre { background:#f1ece1; border:1px solid var(--line2); border-radius:8px; padding:12px; overflow-x:auto; font-size:11.5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="kick">CORUX · physician report</div>
+      <h1>Lab Interpretation</h1>
+      <div class="sub">Decision-support only — not a diagnosis. Output is generated from the input JSON by the agent pipeline.</div>
+    </header>
+
+    <div class="toolbar">
+      <select id="samples"><option value="">Load sample…</option></select>
+      <button id="fmt">Format</button>
+      <span class="spacer"></span>
+      <label class="chk"><input type="checkbox" id="literature" /> Literature</label>
+      <label class="chk"><input type="checkbox" id="persist" /> Persist history</label>
+      <button id="run" class="primary">▶ Run</button>
+    </div>
+
+    <details class="input">
+      <summary>Input JSON</summary>
+      <textarea id="editor" spellcheck="false" placeholder="Paste analyzer output JSON, or load a sample…"></textarea>
+    </details>
+
+    <div id="results"><div class="placeholder">Run the pipeline to generate the physician report.</div></div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    const fmt = (x) => (typeof x==='number') ? (Number.isInteger(x)?x:(+x.toFixed(2))) : x;
+    const editor=$('editor'), results=$('results');
+    let lastResult=null, stepRows={}, totals={tokens:0,llm:0,tools:0};
+
+    fetch('/api/samples').then(r=>r.json()).then(list=>{
+      const sel=$('samples'); list.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
+    });
+    $('samples').addEventListener('change', async e=>{
+      const name=e.target.value; if(!name) return;
+      const data=await fetch('/api/sample/'+encodeURIComponent(name)).then(r=>r.json());
+      editor.value=JSON.stringify(data,null,2); e.target.value='';
+    });
+    $('fmt').addEventListener('click', ()=>{ try{ editor.value=JSON.stringify(JSON.parse(editor.value),null,2);}catch(err){alert('Invalid JSON: '+err.message);} });
+
+    // ---------- trace ----------
+    const fmtTime=(iso)=>{ try{return new Date(iso).toLocaleTimeString('en-GB');}catch{return '';} };
+    function addRow(html){ const b=$('traceBody'); const d=document.createElement('div'); d.innerHTML=html; b.appendChild(d.firstElementChild); b.scrollTop=b.scrollHeight; }
+    function updateTotals(){ const t=totals.tools?`${totals.tools} tool · `:''; $('traceTot').textContent=`${t}${totals.llm} agent call(s) · ${totals.tokens.toLocaleString()} tokens`; }
+    function handleTrace(ev){
+      if(ev.type==='step'){
+        if(ev.status==='started'){ addRow(`<div class="trow" data-step="${esc(ev.step)}"><span class="t">${fmtTime(ev.ts)}</span><span class="ic running"></span><span>${esc(ev.label)}</span><span class="dur"></span></div>`); stepRows[ev.step]=document.querySelector(`.trow[data-step="${CSS.escape(ev.step)}"]`);}
+        else if(ev.status==='completed'){ const r=stepRows[ev.step]; if(r){r.querySelector('.ic').className='ic done'; r.querySelector('.dur').textContent=(ev.duration_ms/1000).toFixed(1)+'s';} }
+        else if(ev.status==='skipped'){ addRow(`<div class="trow"><span class="t">${fmtTime(ev.ts)}</span><span class="ic skip"></span><span>${esc(ev.label)} <span class="sub">— skipped (${esc(ev.reason)})</span></span><span class="dur"></span></div>`); }
+      } else if(ev.type==='llm' && ev.status==='completed'){
+        totals.llm++; totals.tokens+=(ev.input_tokens||0)+(ev.output_tokens||0); updateTotals();
+        addRow(`<div class="trow"><span class="t"></span><span class="ic llm"></span><span class="sub" style="padding-left:14px;">↳ ${esc(ev.model)} · effort:${esc(ev.effort)} · in ${ev.input_tokens||0}/out ${ev.output_tokens||0} tok</span><span class="dur">${(ev.duration_ms/1000).toFixed(1)}s</span></div>`);
+      } else if(ev.type==='tool'){
+        totals.tools++; updateTotals();
+        const inp=ev.input?`${esc(ev.input)} `:'';
+        addRow(`<div class="trow"><span class="t"></span><span class="ic tool"></span><span class="sub" style="padding-left:14px;">🔧 ${esc(ev.tool)}(${esc(ev.analyte||'')}) ${inp?'· '+inp:''}→ ${esc(ev.output||'')}</span><span class="dur"></span></div>`);
+      }
+    }
+
+    // ---------- report ----------
+    function trendCell(t){
+      if(!t || t.label==='baseline') return '<span class="muted">— baseline</span>';
+      let html='';
+      if(t.change!=null){
+        const up=t.change>0, cls=up?'t-up':(t.change<0?'t-down':'t-flat'), arr=up?'▲':(t.change<0?'▼':'→');
+        html+=`<span class="ch ${cls}">${arr} ${t.change>0?'+':''}${fmt(t.change)}</span>`;
+      }
+      const tb = t.tier==='elevated'?'tb-elevated':(t.tier==='falling'?'tb-good':'tb-stable');
+      html+=`<span class="${tb}" style="font-weight:600">${esc(t.label)}${t.tier==='elevated'&&/rising|worsening|now/i.test(t.label)?' ↑':''}</span>`;
+      if(t.peak) html+=`<div class="peak">⚠ ${esc(t.peak)}</div>`;
+      return html;
+    }
+
+    function renderReport(d){
+      const f=d.final, r=d.report, h=r.header;
+      const dq=f.data_quality_flags||[], vr=f.verification_recommended||[];
+      const pats=(d.pattern&&d.pattern.patterns||[]).filter(p=>p.present);
+
+      // main column
+      let main = `<div class="paper">
+        <div class="rhead"><div>
+          <h2>${esc(h.panel_title)}</h2>
+          <div class="meta"><b>${esc(d.patient_key)}</b> · ${esc(h.date||'')} · panels in history <b>${d.visits}</b>${h.lab?` · ${esc(h.lab)}${h.country?' ('+esc(h.country)+')':''}`:''}${h.unit_system?` · ${esc(h.unit_system)}`:''}</div>
+        </div><span class="tagpill">AI analysis</span></div>`;
+
+      main += `<h3 class="section">AI narrative</h3><div class="narrative">`;
+      if(f.headline) main += `<div class="headline">${esc(f.headline)}</div>`;
+      main += `<p>${esc(f.summary)}</p>`;
+      if(f.key_caveat) main += `<div class="callout">${esc(f.key_caveat)}</div>`;
+      main += `<p>${esc(f.explanation)}</p></div>`;
+
+      // markers table
+      main += `<h3 class="section">Markers</h3><table><tr><th>Marker</th><th>Result</th><th>Reference</th><th>Status</th><th>Trend</th></tr>`;
+      main += r.markers.map(m=>`<tr>
+        <td class="name">${esc(m.name)}${m.derived?'<span class="deriv">calc</span>':''}</td>
+        <td class="mono">${esc(m.result)}</td>
+        <td class="mono muted">${esc(m.reference)}</td>
+        <td><span class="badge st-${esc(m.tier)}">${esc(m.status)}</span></td>
+        <td class="trend">${trendCell(m.trend)}</td></tr>`).join('');
+      main += `</table>`;
+
+      if(r.ratios && r.ratios.length){
+        main += `<h3 class="section">Derived ratios</h3><table><tr><th>Ratio</th><th>Value</th><th>Reference</th><th>Status</th></tr>`;
+        main += r.ratios.map(x=>`<tr><td class="name">${esc(x.name)}</td><td class="mono">${esc(fmt(x.value))}</td><td class="mono muted">${esc(x.reference)}</td><td><span class="badge st-${esc(x.tier)}">${esc(x.status)}</span></td></tr>`).join('');
+        main += `</table>`;
+      }
+
+      if(pats.length){
+        main += `<h3 class="section">Recognized pattern → structured follow-up</h3>`;
+        main += pats.map(p=>`<div class="pattern"><b>${esc(p.pattern_name)}</b> <span class="muted">· ${esc((p.members||[]).join(', '))}</span>
+          <div style="margin-top:6px"><b>Recommendation:</b> ${esc(p.recommendation)}</div>
+          <div class="muted" style="margin-top:4px">${esc(p.rationale)}</div></div>`).join('');
+      }
+
+      // side-by-side
+      main += `<h3 class="section">vs. traditional lab <button id="sbsBtn" class="mini-btn" style="margin-left:8px">show</button></h3><div id="sbsBox"></div>`;
+      main += `<div class="disclaimer">${esc(f.disclaimer)}</div></div>`;
+
+      // sidebar
+      let side = `<div class="side">`;
+      if(f.discussion_points && f.discussion_points.length){
+        side += `<div class="card"><h3>Discussion points</h3>` + f.discussion_points.map(p=>`<div class="dp pri-${esc(p.priority)}"><span class="dot"></span><span class="topic">${esc(p.topic)}</span><div class="detail">${esc(p.detail)}</div></div>`).join('') + `</div>`;
+      }
+      if(dq.length || vr.length){
+        side += `<div class="card"><h3>Data quality</h3>`;
+        side += dq.map(e=>`<div class="flagline err"><b>⚠ ${esc(e.marker)}</b> <span class="muted">(${esc(e.confidence)})</span><div class="detail">${esc(e.issue)}</div></div>`).join('');
+        side += vr.map(v=>`<div class="flagline ver"><b>↻ ${esc(v.marker)}</b> <span class="muted">(${esc(v.confidence)})</span><div class="detail">${esc(v.reason)}</div></div>`).join('');
+        side += `</div>`;
+      }
+      side += `<details class="card"><summary class="lab" style="cursor:pointer">Raw output JSON</summary><pre>${esc(JSON.stringify(d,null,2))}</pre></details>`;
+      side += `</div>`;
+
+      $('interp').innerHTML = `<div class="report">${main}${side}</div>`;
+
+      // side-by-side toggle
+      $('sbsBtn').addEventListener('click', ()=>{
+        const box=$('sbsBox');
+        if(box.innerHTML){ box.innerHTML=''; $('sbsBtn').textContent='show'; return; }
+        $('sbsBtn').textContent='hide';
+        const trad = r.traditional.map(x=>{ const fl=x.flag==='high'?'H':(x.flag==='low'?'L':'·'); const fc=x.flag==='high'?'flag-H':(x.flag==='low'?'flag-L':'flag-N');
+          return `<div class="row"><span>${esc(x.name)}</span><span class="mono">${esc(x.result)} <span class="${fc}">${fl}</span></span></div>`; }).join('');
+        const ai = r.markers.map(m=>`<div class="row"><span>${esc(m.name)}</span><span><span class="badge st-${esc(m.tier)}">${esc(m.status)}</span> ${m.trend&&m.trend.label!=='baseline'?`<span class="${m.trend.tier==='elevated'?'tb-elevated':'tb-good'}" style="font-size:11px">${esc(m.trend.label)}</span>`:''}</span></div>`).join('');
+        const extra = (pats.length?`+ pattern: <b>${esc(pats[0].pattern_name)}</b>`:'') + (f.next_panel?`<br>+ next panel in ${esc(f.next_panel.interval)}`:'');
+        box.innerHTML = `<div class="sbs"><div class="col trad"><h4>Traditional lab</h4><div class="sublab">values + reference flags only</div>${trad}<div class="extra muted">No trend. No cross-lab harmonization. No pattern or follow-up.</div></div>
+          <div class="col"><h4>CORUX</h4><div class="sublab">status tiers + longitudinal trend + signal</div>${ai}<div class="extra">${extra}</div></div></div>`;
+      });
+    }
+
+    // ---------- run (SSE stream) ----------
+    async function runStream(parsed){
+      const resp=await fetch('/api/run/stream',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({input:parsed,literature:$('literature').checked,persist:$('persist').checked})});
+      const reader=resp.body.getReader(), dec=new TextDecoder(); let buf='';
+      while(true){
+        const {value,done}=await reader.read(); if(done) break;
+        buf+=dec.decode(value,{stream:true}); const parts=buf.split('\n\n'); buf=parts.pop();
+        for(const part of parts){ const line=part.split('\n').find(l=>l.startsWith('data:')); if(!line) continue;
+          const ev=JSON.parse(line.slice(5).trim());
+          if(ev.type==='result'){ lastResult=ev.data; renderReport(ev.data); $('dlTrace').disabled=false; $('traceWrap').open=false; }
+          else if(ev.type==='error'){ $('interp').innerHTML=`<div class="err-box">Error: ${esc(ev.detail)}</div>`; }
+          else handleTrace(ev);
+        }
+      }
+    }
+
+    $('run').addEventListener('click', async ()=>{
+      let parsed; try{ parsed=JSON.parse(editor.value);}catch(err){ results.innerHTML=`<div class="err-box">Invalid JSON: ${esc(err.message)}</div>`; return; }
+      $('run').disabled=true; stepRows={}; totals={tokens:0,llm:0,tools:0}; lastResult=null;
+      results.innerHTML = `<details class="trace-wrap" id="traceWrap" open><summary>Processing trace</summary>
+          <div class="trace-head"><button id="dlTrace" class="mini-btn" disabled>⤓ Download</button><span class="tot" id="traceTot"></span></div>
+          <div class="trace" id="traceBody"></div></details>
+        <div id="interp"><div class="spin-note"><span class="ic running"></span> Running the pipeline — several agent + tool steps, ~1–2 min…</div></div>`;
+      updateTotals();
+      $('dlTrace').addEventListener('click', ()=>{ if(!lastResult) return; const blob=new Blob([JSON.stringify(lastResult.trace,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`corux-trace-${lastResult.patient_key}.json`; a.click(); });
+      try{ await runStream(parsed); }
+      catch(err){ const i=$('interp'); if(i) i.innerHTML=`<div class="err-box">Request failed: ${esc(err.message)}</div>`; }
+      finally{ $('run').disabled=false; }
+    });
+  </script>
+</body>
+</html>
