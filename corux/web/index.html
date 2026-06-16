@@ -229,13 +229,9 @@
       if(f.key_caveat) main += `<div class="callout">${esc(f.key_caveat)}</div>`;
       main += `<p>${esc(f.explanation)}</p></div>`;
 
-      // collect unique dates from marker histories for expandable columns
-      const histDates = [];
-      const _seenD = new Set();
-      r.markers.forEach(m => (m.history||[]).forEach(h => {
-        if (h.date && !_seenD.has(h.date)) { _seenD.add(h.date); histDates.push(h.date); }
-      }));
-      histDates.sort();
+      // all panel dates from the pipeline (authoritative — covers panels with no
+      // overlap with the latest panel's markers, e.g. a targeted lipid recheck)
+      const histDates = (d.panel_dates || []).slice().sort();
       const hasHist = histDates.length > 1;
       const fmtDate = iso => { try { return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}); } catch { return iso; } };
 

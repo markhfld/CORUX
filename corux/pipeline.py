@@ -39,6 +39,7 @@ class PipelineResult:
     literature: Optional[LiteratureResult]
     final: OrchestratorResult
     notes: list[str] = field(default_factory=list)
+    panel_dates: list[str] = field(default_factory=list)
 
 
 def _fmt_num(x) -> str:
@@ -175,4 +176,5 @@ def run(
         literature=literature_res,
         final=final,
         notes=notes,
+        panel_dates=[p.collected_date for p in all_panels if p.collected_date],
     )

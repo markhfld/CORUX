@@ -42,6 +42,7 @@ def _serialize(result: PipelineResult, trace: list[dict] | None = None) -> dict:
     return {
         "patient_key": result.patient.patient_key,
         "visits": result.visits,
+        "panel_dates": result.panel_dates,
         "notes": result.notes,
         "baseline": result.baseline.model_dump(mode="json"),
         "cross_marker": result.cross_marker.model_dump(mode="json"),
