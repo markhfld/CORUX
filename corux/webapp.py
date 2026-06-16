@@ -53,7 +53,8 @@ def _serialize(result: PipelineResult, trace: list[dict] | None = None) -> dict:
         else None,
         "final": result.final.model_dump(mode="json"),
         "report": report.build(
-            result.latest_panel, result.baseline, result.trajectories, result.visits
+            result.latest_panel, result.baseline, result.trajectories, result.visits,
+            all_panels=result.all_panels,
         ),
         "trace": trace or [],
     }

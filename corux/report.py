@@ -122,6 +122,7 @@ def build(
     baseline: BaselineResult,
     trajectories: list[AnalyteTrajectory],
     panel_count: int,
+    all_panels: list[Panel] | None = None,
 ) -> dict:
     sev_by_marker = {f.marker: f.severity.value for f in baseline.findings}
     traj_by_loinc = {t.loinc: t for t in trajectories if t.loinc}
@@ -149,6 +150,22 @@ def build(
                     "harmonized": pt.harmonized,
                     "in_range": pt.in_range,
                 })
+        elif all_panels:
+            # No trajectory (marker is stable/normal across panels with same units) —
+            # look up raw values in every panel so the history columns still populate.
+            for panel in all_panels:
+                for res in panel.results:
+                    if (r.loinc and res.loinc == r.loinc) or res.name.lower() == r.name.lower():
+                        if isinstance(res.value, (int, float)):
+                            history.append({
+                                "date": panel.collected_date,
+                                "lab": panel.source_lab.name if panel.source_lab else None,
+                                "value": _g(res.value),
+                                "unit": res.unit,
+                                "harmonized": False,
+                                "in_range": (res.flag == "normal") if res.flag else None,
+                            })
+                        break
         markers.append(
             {
                 "name": r.name,

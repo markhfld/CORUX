@@ -40,6 +40,7 @@ class PipelineResult:
     final: OrchestratorResult
     notes: list[str] = field(default_factory=list)
     panel_dates: list[str] = field(default_factory=list)
+    all_panels: list[Panel] = field(default_factory=list)
 
 
 def _fmt_num(x) -> str:
@@ -177,4 +178,5 @@ def run(
         final=final,
         notes=notes,
         panel_dates=[p.collected_date for p in all_panels if p.collected_date],
+        all_panels=all_panels,
     )
