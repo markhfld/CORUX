@@ -3,7 +3,7 @@
     "patient_id": "PT-0001",
     "sex": "male",
     "age_years": 41,
-    "notes": "Synthetic/anonymized demo patient derived from real de-identified results across four panels and three laboratories. Lab names genericized; only country and unit system retained, since cross-lab unit/reference-range divergence is the point of the demo."
+    "notes": "Synthetic/anonymized demo patient derived from real de-identified results across four panels and three laboratories. Lab names genericized; only country and unit system retained, since cross-lab unit/reference-range divergence is the point of the demo. Lifestyle: patient reports no alcohol consumption."
   },
   "panels": [
     {
