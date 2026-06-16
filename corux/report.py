@@ -132,6 +132,23 @@ def build(
         sev = sev_by_marker.get(r.name)
         label, tier = _status(sev, r.value, r.ref_low, r.ref_high, r.flag)
         traj = traj_by_loinc.get(r.loinc) or traj_by_name.get(r.name.lower())
+        history = []
+        if traj:
+            for pt in traj.points:
+                if isinstance(pt.canonical_value, (int, float)):
+                    val_str = f"{pt.canonical_value:g}"
+                elif pt.source_value is not None:
+                    val_str = str(pt.source_value)
+                else:
+                    val_str = None
+                history.append({
+                    "date": pt.date,
+                    "lab": pt.lab,
+                    "value": val_str,
+                    "unit": traj.canonical_unit or pt.canonical_unit,
+                    "harmonized": pt.harmonized,
+                    "in_range": pt.in_range,
+                })
         markers.append(
             {
                 "name": r.name,
@@ -141,6 +158,7 @@ def build(
                 "tier": tier,
                 "derived": r.derived,
                 "trend": _trend(traj),
+                "history": history,
             }
         )
 

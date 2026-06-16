@@ -126,6 +126,14 @@
     .spin-note { display:flex; align-items:center; gap:10px; color:var(--muted); padding:14px 0; }
     .mini-btn { font-size:11px; padding:3px 8px; }
     pre { background:#f1ece1; border:1px solid var(--line2); border-radius:8px; padding:12px; overflow-x:auto; font-size:11.5px; }
+
+    /* history columns */
+    .hist-col { display:none; }
+    #mrkTbl.hist-expanded .hist-col { display:table-cell; }
+    th.hist-col { background:var(--accent-soft); font-size:10px; letter-spacing:.4px; white-space:nowrap; }
+    td.hist-col { background:#fdfbf8; font-size:12px; }
+    .hist-col-first { border-left:2px solid var(--line2); }
+    .hist-ind { font-size:9px; color:var(--accent); margin-left:2px; vertical-align:super; }
   </style>
 </head>
 <body>
@@ -221,14 +229,37 @@
       if(f.key_caveat) main += `<div class="callout">${esc(f.key_caveat)}</div>`;
       main += `<p>${esc(f.explanation)}</p></div>`;
 
+      // collect unique dates from marker histories for expandable columns
+      const histDates = [];
+      const _seenD = new Set();
+      r.markers.forEach(m => (m.history||[]).forEach(h => {
+        if (h.date && !_seenD.has(h.date)) { _seenD.add(h.date); histDates.push(h.date); }
+      }));
+      histDates.sort();
+      const hasHist = histDates.length > 1;
+      const fmtDate = iso => { try { return new Date(iso+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}); } catch { return iso; } };
+
       // markers table
-      main += `<h3 class="section">Markers</h3><table><tr><th>Marker</th><th>Result</th><th>Reference</th><th>Status</th><th>Trend</th></tr>`;
-      main += r.markers.map(m=>`<tr>
+      const histHdrs = hasHist ? histDates.map((d,i)=>`<th class="hist-col${i===0?' hist-col-first':''}">${fmtDate(d)}</th>`).join('') : '';
+      main += `<h3 class="section">Markers</h3><table id="mrkTbl"><tr><th>Marker</th><th>Latest Result</th><th>Reference</th><th>Status</th><th>Trend${hasHist?' <button class="mini-btn" id="histBtn">▶ History</button>':''}</th>${histHdrs}</tr>`;
+      main += r.markers.map(m=>{
+        const byDate = {};
+        (m.history||[]).forEach(h => { if (h.date) byDate[h.date] = h; });
+        const histCells = hasHist ? histDates.map((d,i) => {
+          const h = byDate[d];
+          const fc = `hist-col${i===0?' hist-col-first':''}`;
+          if (!h || h.value == null) return `<td class="mono ${fc}"><span class="muted">—</span></td>`;
+          const cls = h.in_range === false ? 'tb-elevated' : '';
+          const ind = h.harmonized ? '<span class="hist-ind" title="converted to canonical unit">~</span>' : '';
+          return `<td class="mono ${fc}"><span class="${cls}">${esc(h.value)}</span><span class="muted" style="font-size:11px"> ${esc(h.unit||'')}</span>${ind}</td>`;
+        }).join('') : '';
+        return `<tr>
         <td class="name">${esc(m.name)}${m.derived?'<span class="deriv">calc</span>':''}</td>
         <td class="mono">${esc(m.result)}</td>
         <td class="mono muted">${esc(m.reference)}</td>
         <td><span class="badge st-${esc(m.tier)}">${esc(m.status)}</span></td>
-        <td class="trend">${trendCell(m.trend)}</td></tr>`).join('');
+        <td class="trend">${trendCell(m.trend)}</td>${histCells}</tr>`;
+      }).join('');
       main += `</table>`;
 
       if(r.ratios && r.ratios.length){
@@ -263,6 +294,12 @@
       side += `</div>`;
 
       $('interp').innerHTML = `<div class="report">${main}${side}</div>`;
+
+      // history columns toggle
+      document.getElementById('histBtn')?.addEventListener('click', e => {
+        const expanded = document.getElementById('mrkTbl').classList.toggle('hist-expanded');
+        e.target.textContent = expanded ? '▼ History' : '▶ History';
+      });
 
       // side-by-side toggle
       $('sbsBtn').addEventListener('click', ()=>{
